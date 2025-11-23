@@ -111,6 +111,12 @@
     }
   }
 
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
   .theme-btn {
     background: transparent;
     border: none;
@@ -126,6 +132,20 @@
     height: 40px;
 
     &:hover {
+      background-color: rgba(128, 128, 128, 0.1);
+    }
+  }
+
+  .github-link {
+    color: var(--text-color);
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 50%;
+    
+    &:hover {
+      color: var(--primary-color);
       background-color: rgba(128, 128, 128, 0.1);
     }
   }
