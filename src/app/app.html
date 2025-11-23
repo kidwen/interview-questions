@@ -1,0 +1,26 @@
+<div class="layout">
+  <!-- Particle Background -->
+  <div class="particles">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- Top Navigation -->
+  <header class="navbar">
+    <div class="nav-content">
+      <button class="home-btn" routerLink="/">
+        <span class="icon">🏠</span> Home
+      </button>
+
+      <button class="theme-btn" (click)="toggleTheme()" [title]="isDarkMode() ? 'Switch to Light' : 'Switch to Dark'">
+        {{ isDarkMode() ? '☀️' : '🌙' }}
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <router-outlet></router-outlet>
+  </main>
+</div>

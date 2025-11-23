@@ -1,0 +1,167 @@
+// Reset & Global (Usually in styles.scss, but keeping here for containment)
+* {
+  box-sizing: border-box;
+}
+
+// Layout Structure
+.layout {
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s;
+  position: relative; // For absolute positioning of particles
+  overflow-x: hidden; // Prevent scrollbar from particles
+}
+
+// Particle Effects
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0; // Behind everything
+  pointer-events: none;
+
+  span {
+    position: absolute;
+    display: block;
+    list-style: none;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    animation: animate 25s linear infinite;
+    bottom: -150px;
+    border-radius: 50%; // Circles look more "modern" than squares usually
+    opacity: 0; // Start invisible
+
+    &:nth-child(1) { left: 25%; width: 80px; height: 80px; animation-delay: 0s; }
+    &:nth-child(2) { left: 10%; width: 20px; height: 20px; animation-delay: 2s; animation-duration: 12s; }
+    &:nth-child(3) { left: 70%; width: 20px; height: 20px; animation-delay: 4s; }
+    &:nth-child(4) { left: 40%; width: 60px; height: 60px; animation-delay: 0s; animation-duration: 18s; }
+    &:nth-child(5) { left: 65%; width: 20px; height: 20px; animation-delay: 0s; }
+    &:nth-child(6) { left: 75%; width: 110px; height: 110px; animation-delay: 3s; }
+    &:nth-child(7) { left: 35%; width: 150px; height: 150px; animation-delay: 7s; }
+    &:nth-child(8) { left: 50%; width: 25px; height: 25px; animation-delay: 15s; animation-duration: 45s; }
+    &:nth-child(9) { left: 20%; width: 15px; height: 15px; animation-delay: 2s; animation-duration: 35s; }
+    &:nth-child(10) { left: 85%; width: 150px; height: 150px; animation-delay: 0s; animation-duration: 11s; }
+  }
+}
+
+@keyframes animate {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.1; // Subtle start
+    border-radius: 50%; // Start round
+  }
+  50% {
+    opacity: 0.15; // Slightly more visible in middle
+  }
+  100% {
+    transform: translateY(-1000px) rotate(720deg);
+    opacity: 0;
+    border-radius: 20%; // Morph shape slightly
+  }
+}
+
+// Top Navigation
+.navbar {
+  position: fixed; // Changed from sticky to fixed
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  background-color: var(--header-bg);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  transition: background-color 0.3s, box-shadow 0.3s;
+
+  .nav-content {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .home-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+
+    .icon {
+      font-size: 1.1rem;
+    }
+  }
+
+  .theme-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+
+    &:hover {
+      background-color: rgba(128, 128, 128, 0.1);
+    }
+  }
+}
+
+// Main Content Area
+.container {
+  flex: 1;
+  padding: 40px 24px;
+  width: 100%;
+  position: relative;
+  z-index: 1; // Above particles
+  margin-top: 64px; // Add margin to push content down below fixed navbar
+}
+
+// Category Section
+.category-section {
+  margin-bottom: 40px;
+
+  .category-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--shadow-color);
+    transition: color 0.3s, border-color 0.3s;
+    display: inline-block; // Tight wrap
+    padding-right: 20px;
+  }
+}
+
+// Grid Layout for Cards
+.card-grid {
+  display: grid;
+  // Auto-fill columns: minimal width 300px, but stretch to fill space (1fr)
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); // Slightly reduced min-width
+  gap: 24px;
+}

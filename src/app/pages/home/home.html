@@ -1,0 +1,25 @@
+@if (isLoggedIn()) {
+  @for (group of groupedCards(); track group.category) {
+    <section class="category-section">
+      <h2 class="category-title">{{ group.category }}</h2>
+      <div class="card-grid">
+        @for (item of group.items; track item.id) {
+          <app-card [data]="item"></app-card>
+        }
+      </div>
+    </section>
+  }
+} @else {
+  <div class="login-overlay">
+    <div class="login-modal">
+      <h2>阅读须知</h2>
+      <div class="notice-content">
+        <p>欢迎访问本网站。</p>
+        <p>请注意，本网站展示的所有数据（包括但不限于文字、图片、链接）均来源于网络公开资源。</p>
+        <p>我们在整理过程中已尽力确保信息的准确性，但不对内容的真实性、完整性或版权归属承担法律责任。</p>
+        <p>继续访问即表示您已知悉并同意上述说明。</p>
+      </div>
+      <button (click)="handleLogin()">我已阅读并同意</button>
+    </div>
+  </div>
+}

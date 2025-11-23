@@ -1,0 +1,93 @@
+.details-layout {
+  display: flex;
+  gap: 40px;
+  min-height: 600px; // Ensure enough height
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  background: var(--card-bg-1);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  height: fit-content;
+  box-shadow: 0 4px 6px var(--shadow-color);
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+
+  .menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      font-weight: 500;
+
+      &:hover {
+        background: rgba(var(--primary-color), 0.05); // This might need adjustment if primary-color is hex
+        background: var(--bg-color); // Fallback or alternative
+        color: var(--text-color);
+      }
+
+      &.active {
+        background: var(--primary-color);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(var(--primary-color), 0.3); // Assuming we can't do rgba on hex variable easily in pure css without splitting
+        // Simple fallback if variables are hex
+        box-shadow: 0 2px 8px var(--shadow-color);
+      }
+    }
+  }
+}
+
+.content-area {
+  flex: 1;
+  background: var(--card-bg-1);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 6px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+
+  .content-header {
+    border-bottom: 1px solid var(--shadow-color);
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.75rem;
+      color: var(--text-color);
+    }
+  }
+
+  .content-body {
+    color: var(--text-color);
+    line-height: 1.6;
+    font-size: 1rem;
+
+    // Styling for the injected HTML content
+    ::ng-deep {
+      h3 { color: var(--text-color); margin-top: 0; }
+      p { margin-bottom: 1rem; }
+      ul { padding-left: 20px; }
+      li { margin-bottom: 0.5rem; }
+      strong { color: var(--primary-color); }
+    }
+  }
+}

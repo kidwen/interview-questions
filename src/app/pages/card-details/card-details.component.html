@@ -1,0 +1,23 @@
+<div class="details-layout">
+  <!-- Sidebar Menu -->
+  <aside class="sidebar">
+    <ul class="menu-list">
+      @for (item of menuItems(); track item.id) {
+        <li 
+          [class.active]="selectedMenuId() === item.id"
+          (click)="selectMenu(item.id)">
+          {{ item.label }}
+        </li>
+      }
+    </ul>
+  </aside>
+
+  <!-- Right Content Area -->
+  <section class="content-area">
+    <header class="content-header">
+      <h2>{{ selectedMenuLabel }}</h2>
+    </header>
+    
+    <div class="content-body" [innerHTML]="content()"></div>
+  </section>
+</div>
