@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home';
 import { DetailComponent } from './pages/detail/detail';
+import { PromptsComponent } from './pages/prompts/prompts.component';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
@@ -14,6 +15,11 @@ export const routes: Routes = [
     path: 'detail/:id/:menuId', 
     component: DetailComponent,
     canActivate: [authGuard] 
+  },
+  {
+    path: 'prompts',
+    component: PromptsComponent,
+    canActivate: [authGuard]
   },
   { path: '**', redirectTo: '' }
 ];

@@ -65,23 +65,30 @@ export class DetailService {
       const url = new URL(urlStr);
       url.searchParams.append('question_id', questionId.toString());
 
-      fetch(url.toString(), { signal })
+      fetch(url.toString(), {
+        signal,
+        credentials: 'include'
+      })
         .then(async response => {
           const contentType = response.headers.get('content-type');
 
           if (contentType && contentType.includes('application/json')) {
             const json = await response.json();
             if (json.code === 0 && json.data) {
-              observer.next(json.data);
-              observer.complete();
+              this.zone.run(() => {
+                observer.next(json.data);
+                observer.complete();
+              });
             } else {
-              observer.error(new Error(json.msg || 'Unknown error'));
+              this.zone.run(() =>
+                observer.error(new Error(json.msg || 'Unknown error'))
+              );
             }
             return;
           }
 
           if (!response.body) {
-             throw new Error('No response body');
+            throw new Error('No response body');
           }
 
           const reader = response.body.getReader();
@@ -91,22 +98,22 @@ export class DetailService {
             while (true) {
               const { done, value } = await reader.read();
               if (done) {
-                observer.complete();
+                this.zone.run(() => observer.complete());
                 break;
               }
               const chunk = decoder.decode(value, { stream: true });
-              observer.next(chunk);
+              this.zone.run(() => observer.next(chunk));
             }
           } catch (err) {
-             if (err instanceof Error && err.name === 'AbortError') {
-                // Aborted, ignore
-             } else {
-                observer.error(err);
-             }
+            if (err instanceof Error && err.name === 'AbortError') {
+              // Aborted, ignore
+            } else {
+                this.zone.run(() => observer.error(err));
+            }
           }
         })
         .catch(err => {
-           observer.error(err);
+           this.zone.run(() => observer.error(err));
         });
 
       return () => {

@@ -1,4 +1,4 @@
-@if (isLoggedIn()) {
+@if (isPoliceAgreed()) {
   @for (group of groupedCards(); track group.category) {
     <section class="category-section">
       <h2 class="category-title">{{ group.category }}</h2>

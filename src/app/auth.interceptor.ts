@@ -4,11 +4,11 @@ import { Router } from '@angular/router';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const isPoliceAgreed = localStorage.getItem('isPoliceAgreed') === 'true';
 
-  if (!isLoggedIn) {
+  if (!isPoliceAgreed) {
     // Redirect to root and potentially show modal via query param or state
-    // Note: The modal logic is currently in HomeComponent based on isLoggedIn signal.
+    // Note: The modal logic is currently in HomeComponent based on isPoliceAgreed signal.
     // Since this is a strict interceptor, if we block the request, we should redirect.
 
     // However, if the user is already on the home page, the HomeComponent logic handles the modal.

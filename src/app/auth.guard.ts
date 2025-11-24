@@ -3,9 +3,9 @@ import { inject } from '@angular/core';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const isPoliceAgreed = localStorage.getItem('isPoliceAgreed') === 'true';
 
-  if (isLoggedIn) {
+  if (isPoliceAgreed) {
     return true;
   }
 

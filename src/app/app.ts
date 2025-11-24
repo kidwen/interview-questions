@@ -1,16 +1,21 @@
-import { Component, inject, signal, effect } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router'; // Added RouterLink
+import { Component, inject, signal, effect, ViewChild } from '@angular/core';
+import { RouterOutlet, RouterLink } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
+import { AuthModalComponent } from './components/auth-modal/auth-modal.component';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink], // Added RouterLink
+  imports: [RouterOutlet, RouterLink, AuthModalComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
   private document = inject(DOCUMENT);
+  protected authService = inject(AuthService);
+
+  @ViewChild('authModal') authModal!: AuthModalComponent;
 
   // Theme signal
   protected readonly isDarkMode = signal(true);

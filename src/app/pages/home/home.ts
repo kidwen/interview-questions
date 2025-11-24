@@ -14,7 +14,7 @@ export class HomeComponent implements OnInit {
   private homeService = inject(HomeService);
 
   // Signals for login state
-  protected readonly isLoggedIn = signal<boolean>(false);
+  protected readonly isPoliceAgreed = signal<boolean>(false);
 
   // Signal to hold our transformed card data
   // Note: We reuse CardData interface if it matches HomeCardData structurally,
@@ -47,16 +47,16 @@ export class HomeComponent implements OnInit {
   }
 
   private checkLoginStatus() {
-    const hasSession = localStorage.getItem('isLoggedIn') === 'true';
+    const hasSession = localStorage.getItem('isPoliceAgreed') === 'true';
     if (hasSession) {
-      this.isLoggedIn.set(true);
+      this.isPoliceAgreed.set(true);
       this.loadData();
     }
   }
 
   protected handleLogin() {
-    this.isLoggedIn.set(true);
-    localStorage.setItem('isLoggedIn', 'true');
+    this.isPoliceAgreed.set(true);
+    localStorage.setItem('isPoliceAgreed', 'true');
     this.loadData();
   }
 
