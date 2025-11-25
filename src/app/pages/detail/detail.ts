@@ -3,13 +3,16 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DetailService, DetailMenuItem } from '../../services/detail.service';
+import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 import { Subscription } from 'rxjs';
 import { marked } from 'marked';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './detail.html',
   styleUrl: './detail.scss'
 })
@@ -18,10 +21,37 @@ export class DetailComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
   private detailService = inject(DetailService);
+  protected authService = inject(AuthService);
+  private toastService = inject(ToastService);
 
   protected cardId = signal<string | null>(null);
   protected menuItems = signal<DetailMenuItem[]>([]);
   protected selectedMenuId = signal<number | null>(null);
+
+  // Filter signals
+  protected showRead = signal(true);
+  protected showUnread = signal(true);
+
+  protected filteredMenuItems = computed(() => {
+    const items = this.menuItems();
+    const showRead = this.showRead();
+    const showUnread = this.showUnread();
+    const currentId = this.selectedMenuId();
+
+    // If both checked or both unchecked, show all
+    if (showRead === showUnread) {
+      return items;
+    }
+
+    return items.filter(item => {
+      // Always show the currently selected item
+      if (item.id === currentId) return true;
+
+      if (showRead && item.isRead) return true;
+      if (showUnread && !item.isRead) return true;
+      return false;
+    });
+  });
 
   protected streamedContentRaw = signal<string>('');
   protected isLoading = signal<boolean>(false);
@@ -78,6 +108,62 @@ export class DetailComponent implements OnInit, OnDestroy {
     if (!currentId || this.isLoading()) return;
 
     this.loadAnswer(currentId, true); // true indicates refresh
+  }
+
+  markAsRead() {
+    const currentId = this.selectedMenuId();
+    if (!currentId) return;
+
+    const currentItem = this.menuItems().find(item => item.id === currentId);
+    if (currentItem?.isRead) return; // 已经是已读状态，不调用接口
+
+    this.detailService.updateReadStatus(currentId, true).subscribe({
+      next: (response) => {
+        if (response.code === 0) {
+          this.menuItems.update(items =>
+            items.map(item =>
+              item.id === currentId ? { ...item, isRead: true } : item
+            )
+          );
+          this.toastService.show('标记为已读成功', 'success');
+        } else {
+          console.error('Failed to mark as read:', response.msg);
+          this.toastService.show('标记失败: ' + response.msg, 'error');
+        }
+      },
+      error: (err) => {
+        console.error('Error marking as read:', err);
+        this.toastService.show('标记失败，请稍后重试', 'error');
+      }
+    });
+  }
+
+  markAsUnread() {
+    const currentId = this.selectedMenuId();
+    if (!currentId) return;
+
+    const currentItem = this.menuItems().find(item => item.id === currentId);
+    if (!currentItem?.isRead) return; // 已经是未读状态，不调用接口
+
+    this.detailService.updateReadStatus(currentId, false).subscribe({
+      next: (response) => {
+        if (response.code === 0) {
+          this.menuItems.update(items =>
+            items.map(item =>
+              item.id === currentId ? { ...item, isRead: false } : item
+            )
+          );
+          this.toastService.show('取消已读成功', 'success');
+        } else {
+          console.error('Failed to mark as unread:', response.msg);
+          this.toastService.show('取消失败: ' + response.msg, 'error');
+        }
+      },
+      error: (err) => {
+        console.error('Error marking as unread:', err);
+        this.toastService.show('取消失败，请稍后重试', 'error');
+      }
+    });
   }
 
   private loadAnswer(id: number, isRefresh = false) {

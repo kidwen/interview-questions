@@ -1,10 +1,40 @@
 <div class="detail-container">
   <!-- Left Sidebar Menu -->
   <aside class="sidebar">
+    @if (authService.isLoggedIn()) {
+    <div class="filter-bar">
+      <label class="checkbox-label">
+        <input type="checkbox" [ngModel]="showRead()" (ngModelChange)="showRead.set($event)" />
+        已读
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" [ngModel]="showUnread()" (ngModelChange)="showUnread.set($event)" />
+        未读
+      </label>
+    </div>
+    }
+
     <ul class="menu-list">
-      @for (item of menuItems(); track $index) {
+      @for (item of filteredMenuItems(); track item.id) {
       <li [class.active]="selectedMenuId() === item.id" (click)="selectMenu(item.id)">
-        {{ $index + 1 }}. {{ item.label }}
+        @if (authService.isLoggedIn()) {
+        <svg
+          class="check-icon"
+          [class.read]="item.isRead"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        }
+        <span>{{ $index + 1 }}. {{ item.label }}</span>
       </li>
       }
     </ul>
@@ -33,5 +63,43 @@
     }
 
     <div class="html-renderer" [innerHTML]="selectedContent()"></div>
+
+    @if (authService.isLoggedIn() && selectedMenuId() && !isLoading() && streamedContentRaw()) {
+    <div class="read-actions">
+      <button class="btn-read" (click)="markAsRead()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        标为已读
+      </button>
+      <button class="btn-unread" (click)="markAsUnread()">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        取消已读
+      </button>
+    </div>
+    }
   </section>
 </div>

@@ -1,0 +1,9 @@
+<div class="toast-container">
+  @for (toast of toastService.toasts(); track toast.id) {
+  <div class="toast" [class]="toast.type">
+    <span>{{ toast.text }}</span>
+    <button (click)="toastService.remove(toast.id)">&times;</button>
+  </div>
+  }
+</div>
+

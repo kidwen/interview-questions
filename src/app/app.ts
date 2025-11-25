@@ -2,12 +2,13 @@ import { Component, inject, signal, effect, ViewChild } from '@angular/core';
 import { RouterOutlet, RouterLink } from '@angular/router';
 import { DOCUMENT } from '@angular/common';
 import { AuthModalComponent } from './components/auth-modal/auth-modal.component';
+import { ToastComponent } from './components/toast/toast.component';
 import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, AuthModalComponent],
+  imports: [RouterOutlet, RouterLink, AuthModalComponent, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

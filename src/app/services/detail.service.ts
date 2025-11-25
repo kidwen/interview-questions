@@ -15,6 +15,7 @@ export interface QuestionApiResponse {
   question_id: number;
   question: string;
   content?: string;
+  is_read: boolean;
 }
 
 // UI 使用的数据结构 (菜单项)
@@ -22,6 +23,7 @@ export interface DetailMenuItem {
   id: number;
   label: string;
   content: string; // 初始为空，流式加载时填充
+  isRead: boolean; // 标识是否已读
 }
 
 @Injectable({
@@ -34,11 +36,12 @@ export class DetailService {
   private readonly apiUrl = 'https://bagu.kidwen.top/api/questions';
   private readonly streamApiUrl = 'https://bagu.kidwen.top/api/answer';
   private readonly refreshApiUrl = 'https://bagu.kidwen.top/api/answer/refresh';
+  private readonly readStatusApiUrl = 'https://bagu.kidwen.top/api/read';
 
   getQuestions(cardId: string): Observable<DetailMenuItem[]> {
     const params = new HttpParams().set('cate_id', cardId);
 
-    return this.http.get<ApiResponse<QuestionApiResponse[]>>(this.apiUrl, { params }).pipe(
+    return this.http.get<ApiResponse<QuestionApiResponse[]>>(this.apiUrl, { params, withCredentials: true }).pipe(
       map(response => {
         if (response.code === 0 && Array.isArray(response.data)) {
           return this.transformData(response.data);
@@ -108,12 +111,12 @@ export class DetailService {
             if (err instanceof Error && err.name === 'AbortError') {
               // Aborted, ignore
             } else {
-                this.zone.run(() => observer.error(err));
+              this.zone.run(() => observer.error(err));
             }
           }
         })
         .catch(err => {
-           this.zone.run(() => observer.error(err));
+          this.zone.run(() => observer.error(err));
         });
 
       return () => {
@@ -122,11 +125,20 @@ export class DetailService {
     });
   }
 
+  updateReadStatus(questionId: number, isRead: boolean): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      this.readStatusApiUrl,
+      { question_id: questionId, is_read: isRead },
+      { withCredentials: true }
+    );
+  }
+
   private transformData(data: QuestionApiResponse[]): DetailMenuItem[] {
-    return data.map((item, index) => ({
+    return data.map((item) => ({
       id: item.question_id,
       label: item.question,
-      content: ''
+      content: '',
+      isRead: item.is_read ?? false
     }));
   }
 }

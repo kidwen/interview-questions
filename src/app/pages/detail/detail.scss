@@ -11,12 +11,14 @@
 
 // Sidebar
 .sidebar {
-  width: 250px;
+  width: 360px;
   // Fixed positioning requirements
   position: fixed;
   top: 104px; // Navbar (64px) + Top Padding (40px)
   max-height: calc(100vh - 144px); // Viewport - Top(104) - Bottom Padding(40)
-  overflow-y: auto; // Vertical scrolling
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // Prevent outer scroll, handle inner scroll
 
   // Scrollbar styling
   scrollbar-width: thin;
@@ -38,12 +40,46 @@
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--shadow-color);
     padding-bottom: 10px;
+    flex-shrink: 0;
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--shadow-color);
+    flex-shrink: 0;
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      user-select: none;
+
+      input[type='checkbox'] {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        accent-color: var(--primary-color);
+      }
+
+      &:hover {
+        color: var(--primary-color);
+      }
+    }
   }
 
   .menu-list {
     list-style: none;
     padding: 0;
     margin: 0;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0; // Important for flex scrolling
 
     li {
       padding: 12px 16px;
@@ -53,6 +89,23 @@
       transition: all 0.2s;
       color: var(--text-color);
       font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .check-icon {
+        flex-shrink: 0;
+        color: #9ca3af; // 灰色未读
+        transition: color 0.2s;
+
+        &.read {
+          color: #22c55e; // 绿色已读
+        }
+      }
+
+      span {
+        flex: 1;
+      }
 
       &:hover {
         background: var(--shadow-color);
@@ -63,6 +116,14 @@
         background: var(--primary-color);
         color: white;
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); // Shadow matching primary
+
+        .check-icon {
+          color: rgba(255, 255, 255, 0.7);
+
+          &.read {
+            color: #22c55e;
+          }
+        }
       }
     }
   }
@@ -70,14 +131,19 @@
   @media (max-width: 768px) {
     position: static;
     width: 100%;
-    max-height: 300px; // Limit height on mobile but allow scroll
+    max-height: 400px; // Increased height for mobile
     margin-bottom: 0;
+    display: block; // Reset to block for simpler mobile layout if needed, or keep flex
+    
+    // Re-enable container scroll for mobile if preferred, 
+    // or keep internal list scroll. Let's keep internal list scroll.
+    display: flex;
   }
 }
 
 // Content Area
 .content-area {
-  margin-left: 320px;
+  margin-left: 430px;
   min-height: 500px;
   background: var(--card-bg-1);
   border: 1px solid var(--card-border);
@@ -119,6 +185,7 @@
   .html-renderer {
     color: var(--text-color);
     line-height: 1.6;
+    margin-bottom: 60px; // 为底部按钮留空间
 
     // Styles for the injected HTML
     ::ng-deep {
@@ -162,6 +229,54 @@
 
       // Dark mode adaptation for code block background if needed
       // Assuming .dark-theme is applied to body
+    }
+  }
+
+  .read-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--shadow-color);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid var(--shadow-color);
+
+      svg {
+        flex-shrink: 0;
+      }
+
+      &.btn-read {
+        background: #22c55e;
+        color: white;
+        border-color: #22c55e;
+
+        &:hover {
+          background: #16a34a;
+          border-color: #16a34a;
+          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+      }
+
+      &.btn-unread {
+        background: transparent;
+        color: var(--text-secondary);
+
+        &:hover {
+          background: var(--shadow-color);
+          color: var(--text-color);
+          border-color: var(--text-secondary);
+        }
+      }
     }
   }
 

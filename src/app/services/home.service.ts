@@ -15,6 +15,7 @@ export interface HomeApiResponse {
   cate_id: number | string;
   cate_level1: string; // category
   cate_level2: string; // title
+  question_count: number;
 }
 
 // UI 使用的数据结构
@@ -22,6 +23,7 @@ export interface HomeCardData {
   id: string;
   title: string;
   category: string;
+  count: number;
 }
 
 @Injectable({
@@ -37,7 +39,7 @@ export class HomeService {
     return this.http.get<ApiResponse<HomeApiResponse[]>>(this.apiUrl).pipe(
       map(response => {
         if (response.code === 0 && Array.isArray(response.data)) {
-           return this.transformData(response.data);
+          return this.transformData(response.data);
         }
         // 如果 code != 0 或 data 不是数组，返回空数组或抛出错误
         console.warn('API returned non-zero code or invalid data format', response);
@@ -50,7 +52,8 @@ export class HomeService {
     return data.map(item => ({
       id: item.cate_id.toString(),
       title: item.cate_level2,
-      category: item.cate_level1
+      category: item.cate_level1,
+      count: item.question_count
     }));
   }
 }

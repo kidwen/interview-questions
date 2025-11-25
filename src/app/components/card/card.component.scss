@@ -1,6 +1,7 @@
 :host {
   display: block;
   width: 100%;
+  perspective: 1000px; // 增加透视效果
 }
 
 .card {
@@ -13,15 +14,31 @@
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  // 使用 CSS 变量控制 3D 变换
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --translate-y: 0px;
+  --scale: 1;
+
+  transform-style: preserve-3d;
+  transform: translateY(var(--translate-y)) scale(var(--scale))
+    rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
+  will-change: transform;
+
+  // 为了 3D 跟随效果更跟手，transform 的过渡需要快一点
+  transition: transform 0.05s linear, box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+    border-color 0.3s ease;
+
   box-shadow: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -1px var(--shadow-color); // Tailwind-ish shadow
   display: flex;
   flex-direction: column;
 
   &:hover {
-    transform: translateY(-5px) scale(1.02);
+    --translate-y: -5px;
+    --scale: 1.02;
     box-shadow: 0 20px 25px -5px var(--shadow-hover), 0 10px 10px -5px var(--shadow-hover);
-    border-color: rgba(var(--primary-color), 0.3);
+    border-color: var(--primary-color); // Make border change more visible
 
     .shine {
       opacity: 1;
@@ -36,7 +53,7 @@
   }
 
   .card-content {
-    padding: 20px;
+    padding: 20px 20px 30px; // Increase bottom padding to make room for meta
     flex: 1;
     display: flex;
     align-items: center;
@@ -56,6 +73,29 @@
     }
   }
 
+  .card-meta {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 2;
+    opacity: 0.7;
+    transition: all 0.3s;
+
+    .count {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      background: var(--shadow-color);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+  }
+
+  &:hover .card-meta {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+
   // The Light/Shine Effect
   .shine {
     position: absolute;
@@ -66,7 +106,7 @@
     background: linear-gradient(
       90deg,
       rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.1) 50%, // More subtle for "premium" feel
+      rgba(255, 255, 255, 0.4) 50%, // Increased opacity for better visibility
       rgba(255, 255, 255, 0) 100%
     );
     transform: skewX(-25deg) translateX(0);

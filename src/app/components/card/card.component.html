@@ -1,7 +1,18 @@
-<div class="card" [routerLink]="['/detail', data.id]">
+<div
+  class="card"
+  #card
+  [routerLink]="['/detail', data.id]"
+  (mousemove)="onMouseMove($event)"
+  (mouseleave)="onMouseLeave()"
+>
   <div class="card-content">
     <h3>{{ data.title }}</h3>
   </div>
+  @if(data.count) {
+    <div class="card-meta">
+      <span class="count">{{ data.count }} 题</span>
+    </div>
+  }
   <!-- Shine effect element -->
   <div class="shine"></div>
 </div>
