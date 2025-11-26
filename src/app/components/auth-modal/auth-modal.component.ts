@@ -1,7 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, AuthResponse } from '../../services/auth.service';
 
 @Component({
   selector: 'app-auth-modal',
@@ -12,6 +12,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class AuthModalComponent {
   private authService = inject(AuthService);
+  private readonly lockedMessage = '账号已锁定，请联系管理员。';
 
   protected isOpen = signal(false);
   protected isLoginMode = signal(true); // true: Login, false: Register
@@ -58,9 +59,13 @@ export class AuthModalComponent {
     if (this.isLoginMode()) {
       // Login
       this.authService.login({ email: emailVal, password: passVal }).subscribe({
-        next: (res) => {
+        next: (res: AuthResponse) => {
           this.isLoading.set(false);
           if (res.code === 0) {
+            if (res.data?.is_locked) {
+              this.errorMessage.set(this.lockedMessage);
+              return;
+            }
             this.close();
           } else {
             this.errorMessage.set(res.msg || 'Login failed');
@@ -90,9 +95,13 @@ export class AuthModalComponent {
       }
 
       this.authService.register({ username: userVal, email: emailVal, password: passVal }).subscribe({
-        next: (res) => {
+        next: (res: AuthResponse) => {
           this.isLoading.set(false);
           if (res.code === 0) {
+            if (res.data?.is_locked) {
+              this.errorMessage.set(this.lockedMessage);
+              return;
+            }
             this.close();
           } else {
             this.errorMessage.set(res.msg || 'Registration failed');

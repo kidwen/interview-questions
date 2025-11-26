@@ -1,6 +1,14 @@
 <div class="prompts-container">
   <header class="page-header">
-    <h1>我的提示词</h1>
+    <div class="heading-group">
+      <h1>我的提示词</h1>
+      <p class="role-line">
+        角色：<span class="role-tag">{{ roleLabel() }}</span>
+        @if (isLocked()) {
+          <span class="locked-flag">账号已锁定，仅可浏览</span>
+        }
+      </p>
+    </div>
     <!-- <div class="user-info">
       <img
         [src]="
@@ -19,21 +27,27 @@
     </div> -->
   </header>
 
-  <section class="editor">
+  @if (isLocked()) {
+    <div class="lock-banner">
+      账号已被锁定，目前仅支持查看历史提示词，无法创建、编辑、删除或应用提示词。如需恢复权限请联系管理员。
+    </div>
+  }
+
+  <section class="editor" [class.editor--disabled]="isLocked()">
     <h2>新增提示词</h2>
     <textarea
       rows="4"
       placeholder="写下你想要保存的 Prompt..."
       [ngModel]="newPrompt()"
       (ngModelChange)="newPrompt.set($event)"
-      [disabled]="isSaving()"
+      [disabled]="isSaving() || isLocked()"
     ></textarea>
     <div class="editor-actions">
       <span class="char-count">{{ newPrompt().length }} 字符</span>
       <button
         class="primary-btn"
         (click)="createPrompt()"
-        [disabled]="!newPrompt().trim() || isSaving()"
+        [disabled]="!newPrompt().trim() || isSaving() || isLocked()"
       >
         {{ isSaving() ? '保存中...' : '创建提示词' }}
       </button>
@@ -50,7 +64,11 @@
       <div class="actions">
         <span class="count">{{ promptCount() }} 个</span>
         @if (appliedPromptId()) {
-          <button class="ghost-btn" (click)="clearApplied()" [disabled]="busyPromptId() === 0">
+          <button
+            class="ghost-btn"
+            (click)="clearApplied()"
+            [disabled]="busyPromptId() === 0 || isLocked()"
+          >
             {{ busyPromptId() === 0 ? '处理中...' : '取消已应用' }}
           </button>
         }
@@ -73,7 +91,7 @@
                 rows="3"
                 [ngModel]="editingValue()"
                 (ngModelChange)="editingValue.set($event)"
-                [disabled]="isSaving()"
+                [disabled]="isSaving() || isLocked()"
               ></textarea>
             } @else {
               <p class="prompt-text">{{ prompt.prompt }}</p>
@@ -81,27 +99,31 @@
 
             <div class="prompt-actions">
               @if (editingPromptId() === prompt.prompt_id) {
-                <button class="primary-btn" (click)="savePrompt()" [disabled]="isSaving()">
+                <button
+                  class="primary-btn"
+                  (click)="savePrompt()"
+                  [disabled]="isSaving() || isLocked()"
+                >
                   保存
                 </button>
                 <button class="ghost-btn" (click)="cancelEdit()" [disabled]="isSaving()">
                   取消
                 </button>
               } @else {
-                <button class="ghost-btn" (click)="startEdit(prompt)">
+                <button class="ghost-btn" (click)="startEdit(prompt)" [disabled]="isLocked()">
                   编辑
                 </button>
                 <button
                   class="ghost-btn danger"
                   (click)="deletePrompt(prompt.prompt_id)"
-                  [disabled]="busyPromptId() === prompt.prompt_id"
+                  [disabled]="busyPromptId() === prompt.prompt_id || isLocked()"
                 >
                   删除
                 </button>
                 <button
                   class="primary-btn"
                   (click)="applyPrompt(prompt.prompt_id)"
-                  [disabled]="busyPromptId() === prompt.prompt_id"
+                  [disabled]="busyPromptId() === prompt.prompt_id || isLocked()"
                 >
                   {{
                     prompt.prompt_id === appliedPromptId()

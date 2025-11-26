@@ -1,0 +1,132 @@
+<div class="admin-users">
+  <header class="admin-users__header">
+    <div>
+      <p class="breadcrumb">管理中心 / 用户列表</p>
+      <h1>用户列表</h1>
+      <p class="subtitle">支持按邮箱、用户名、锁定状态组合查询</p>
+    </div>
+    <div class="header-stats">
+      <span class="stat-label">当前结果</span>
+      <span class="stat-value">{{ totalUsers() }}</span>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="field">
+      <label for="emailFilter">邮箱</label>
+      <input
+        id="emailFilter"
+        type="text"
+        placeholder="example@company.com"
+        [ngModel]="email()"
+        (ngModelChange)="email.set($event)"
+      />
+    </div>
+    <div class="field">
+      <label for="usernameFilter">用户名</label>
+      <input
+        id="usernameFilter"
+        type="text"
+        placeholder="用户名关键字"
+        [ngModel]="username()"
+        (ngModelChange)="username.set($event)"
+      />
+    </div>
+    <div class="field">
+      <label for="lockFilter">状态</label>
+      <select
+        id="lockFilter"
+        [ngModel]="lockedFilter()"
+        (ngModelChange)="lockedFilter.set($event)"
+      >
+        @for (option of lockFilterOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="actions">
+      <button class="primary" (click)="searchUsers()" [disabled]="isLoading()">查询</button>
+      <button class="ghost" (click)="resetFilters()" [disabled]="isLoading()">重置</button>
+    </div>
+  </section>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <section class="results">
+    @if (isLoading()) {
+      <div class="loading">加载中...</div>
+    } @else if (!users().length) {
+      <div class="empty">暂无符合条件的用户。</div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="checkbox-cell">选择</th>
+              <th>#</th>
+              <th>用户名</th>
+              <th>邮箱</th>
+              <th>角色</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.user_id; let index = $index) {
+              <tr [class.row-selected]="isUserSelected(user.user_id)">
+                <td class="checkbox-cell">
+                  <input
+                    type="checkbox"
+                    [checked]="isUserSelected(user.user_id)"
+                    (change)="toggleSelection(user.user_id, $any($event.target).checked)"
+                  />
+                </td>
+                <td>{{ index + 1 }}</td>
+                <td>
+                  <span class="user-name">{{ user.username }}</span>
+                  <small>ID: {{ user.user_id }}</small>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span class="role-chip">{{ formatRole(user.role) }}</span>
+                </td>
+                <td>
+                  <span
+                    class="status-chip"
+                    [class.status-chip--locked]="user.is_locked"
+                  >
+                    {{ formatLockStatus(user) }}
+                  </span>
+                </td>
+                <td class="action-cell">
+                  @if (isUserSelected(user.user_id)) {
+                    <div class="inline-actions">
+                      <button
+                        class="ghost danger"
+                        (click)="changeLockStatus(user, true)"
+                        [disabled]="isMutating() || user.is_locked"
+                      >
+                        锁定
+                      </button>
+                      <button
+                        class="ghost success"
+                        (click)="changeLockStatus(user, false)"
+                        [disabled]="isMutating() || !user.is_locked"
+                      >
+                        解锁
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="muted">--</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

@@ -273,7 +273,27 @@
           font-size: 0.85rem;
           color: var(--text-secondary);
         }
+
+          .role-badge {
+            margin-top: 0.35rem;
+            align-self: flex-start;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary-color);
+          }
       }
+
+        .locked-hint {
+          font-size: 0.8rem;
+          color: #ff4d4f;
+          background: rgba(255, 77, 79, 0.1);
+          border: 1px solid rgba(255, 77, 79, 0.4);
+          border-radius: 6px;
+          padding: 0.5rem 0.75rem;
+        }
 
       .logout-btn {
         width: 100%;
@@ -289,6 +309,15 @@
         &:hover {
           border-color: #ff4d4f;
           color: #ff4d4f;
+        }
+
+        &.admin-link {
+          border-color: var(--primary-color);
+          color: var(--primary-color);
+
+          &:hover {
+            background: rgba(99, 102, 241, 0.1);
+          }
         }
       }
     }

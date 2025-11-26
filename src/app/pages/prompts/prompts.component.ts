@@ -28,6 +28,8 @@ export class PromptsComponent implements OnInit {
   protected appliedPromptId = signal<number | null>(null);
   protected busyPromptId = signal<number | null>(null); // For apply/delete operations
 
+  protected readonly roleLabel = computed(() => this.currentUser()?.role ?? 'user');
+  protected readonly isLocked = computed(() => this.currentUser()?.is_locked ?? false);
   protected readonly promptCount = computed(() => this.prompts().length);
 
   ngOnInit() {
@@ -57,6 +59,9 @@ export class PromptsComponent implements OnInit {
   }
 
   createPrompt() {
+    if (!this.ensureWritable('账号已锁定，无法创建提示词。')) {
+      return;
+    }
     const value = this.newPrompt().trim();
     if (!value || this.isSaving()) {
       return;
@@ -78,6 +83,9 @@ export class PromptsComponent implements OnInit {
   }
 
   startEdit(prompt: Prompt) {
+    if (!this.ensureWritable('账号已锁定，无法编辑提示词。')) {
+      return;
+    }
     this.editingPromptId.set(prompt.prompt_id);
     this.editingValue.set(prompt.prompt);
     this.errorMessage.set('');
@@ -89,6 +97,9 @@ export class PromptsComponent implements OnInit {
   }
 
   savePrompt() {
+    if (!this.ensureWritable('账号已锁定，无法保存提示词。')) {
+      return;
+    }
     const id = this.editingPromptId();
     const value = this.editingValue().trim();
     if (!id || !value || this.isSaving()) {
@@ -110,6 +121,9 @@ export class PromptsComponent implements OnInit {
   }
 
   deletePrompt(id: number) {
+    if (!this.ensureWritable('账号已锁定，无法删除提示词。')) {
+      return;
+    }
     if (
       !confirm('确定要删除该提示词吗？删除后不可恢复。') ||
       this.busyPromptId()
@@ -134,6 +148,9 @@ export class PromptsComponent implements OnInit {
   }
 
   applyPrompt(id: number) {
+    if (!this.ensureWritable('账号已锁定，无法应用提示词。')) {
+      return;
+    }
     if (this.busyPromptId()) {
       return;
     }
@@ -155,6 +172,9 @@ export class PromptsComponent implements OnInit {
   }
 
   clearApplied() {
+    if (!this.ensureWritable('账号已锁定，无法取消应用。')) {
+      return;
+    }
     if (this.busyPromptId()) {
       return;
     }
@@ -179,4 +199,12 @@ export class PromptsComponent implements OnInit {
   //   this.authService.logout();
   //   this.router.navigate(['/']);
   // }
+
+  private ensureWritable(message = '账号已锁定，无法执行此操作。') {
+    if (this.isLocked()) {
+      this.errorMessage.set(message);
+      return false;
+    }
+    return true;
+  }
 }
