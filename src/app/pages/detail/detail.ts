@@ -98,6 +98,9 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.selectedMenuId.set(id);
     this.loadAnswer(id);
 
+    // Scroll to top of the page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     if (navigate) {
       this.router.navigate(['/detail', this.cardId(), id]);
     }
