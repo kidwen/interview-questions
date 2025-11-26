@@ -27,6 +27,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   protected cardId = signal<string | null>(null);
   protected menuItems = signal<DetailMenuItem[]>([]);
   protected selectedMenuId = signal<number | null>(null);
+  protected readonly isMenuLoading = signal<boolean>(false);
 
   // Filter signals
   protected showRead = signal(true);
@@ -55,6 +56,11 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   protected streamedContentRaw = signal<string>('');
   protected isLoading = signal<boolean>(false);
+  protected readonly sidebarSkeletonItems = Array.from({ length: 7 }, (_, index) => index);
+  protected readonly contentSkeletonParagraphs = Array.from({ length: 6 }, (_, index) => index);
+  protected readonly shouldShowContentSkeleton = computed(
+    () => this.isLoading() && !this.streamedContentRaw()
+  );
 
   private streamSubscription: Subscription | null = null;
 
@@ -201,9 +207,16 @@ export class DetailComponent implements OnInit, OnDestroy {
   }
 
   private fetchDetailData(id: string) {
+    this.isMenuLoading.set(true);
+    this.menuItems.set([]);
+    this.selectedMenuId.set(null);
+    this.streamedContentRaw.set('');
+    this.stopStream();
+
     this.detailService.getQuestions(id).subscribe({
       next: (data) => {
         this.menuItems.set(data);
+        this.isMenuLoading.set(false);
 
         const hasRouteParam = this.route.snapshot.paramMap.has('menuId');
         if (!hasRouteParam && data.length > 0) {
@@ -213,6 +226,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error fetching detail questions:', err);
+        this.isMenuLoading.set(false);
       }
     });
   }

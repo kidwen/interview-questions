@@ -77,3 +77,87 @@
     }
   }
 }
+
+// Skeleton loading states
+.home-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 0.5rem 0 1rem;
+  --skeleton-base-start: rgba(148, 163, 184, 0.18);
+  --skeleton-base-mid: rgba(148, 163, 184, 0.32);
+  --skeleton-card-surface: var(--header-bg);
+  --skeleton-border: rgba(148, 163, 184, 0.25);
+}
+
+:host-context(.dark-theme) .home-skeleton {
+  --skeleton-base-start: rgba(15, 23, 42, 0.7);
+  --skeleton-base-mid: rgba(148, 163, 184, 0.35);
+  --skeleton-card-surface: rgba(30, 41, 59, 0.85);
+  --skeleton-border: rgba(15, 23, 42, 0.8);
+}
+
+.skeleton-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeleton-title {
+  width: clamp(150px, 20vw, 260px);
+  height: 1.4rem;
+  border-radius: 0.75rem;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.skeleton-card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--skeleton-border);
+  background: var(--skeleton-card-surface);
+  box-shadow: 0 20px 45px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.skeleton-line {
+  height: 0.9rem;
+  border-radius: 999px;
+}
+
+.skeleton-line--lg {
+  width: 80%;
+  max-width: 220px;
+}
+
+.skeleton-line--sm {
+  width: 45%;
+  max-width: 160px;
+  margin-top: 0.75rem;
+}
+
+.skeleton-block {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base-start),
+    var(--skeleton-base-mid),
+    var(--skeleton-base-start)
+  );
+  background-size: 200% 100%;
+  animation: skeletonGlow 1.2s ease-in-out infinite;
+}
+
+@keyframes skeletonGlow {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

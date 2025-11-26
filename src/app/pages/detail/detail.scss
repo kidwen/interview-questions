@@ -134,8 +134,8 @@
     max-height: 400px; // Increased height for mobile
     margin-bottom: 0;
     display: block; // Reset to block for simpler mobile layout if needed, or keep flex
-    
-    // Re-enable container scroll for mobile if preferred, 
+
+    // Re-enable container scroll for mobile if preferred,
     // or keep internal list scroll. Let's keep internal list scroll.
     display: flex;
   }
@@ -286,6 +286,103 @@
   }
 }
 
+// Detail skeleton surfaces
+.detail-skeleton {
+  width: 100%;
+  --detail-skeleton-start: rgba(148, 163, 184, 0.25);
+  --detail-skeleton-mid: rgba(148, 163, 184, 0.45);
+  --detail-skeleton-surface: rgba(255, 255, 255, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+:host-context(.dark-theme) .detail-skeleton {
+  --detail-skeleton-start: rgba(15, 23, 42, 0.8);
+  --detail-skeleton-mid: rgba(148, 163, 184, 0.35);
+  --detail-skeleton-surface: rgba(30, 41, 59, 0.8);
+}
+
+.detail-skeleton__block {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    var(--detail-skeleton-start),
+    var(--detail-skeleton-mid),
+    var(--detail-skeleton-start)
+  );
+  background-size: 200% 100%;
+  animation: detailSkeletonShimmer 3s ease-in-out infinite;
+  border-radius: 999px;
+}
+
+.detail-skeleton--sidebar {
+  gap: 1.25rem;
+  height: 100%;
+}
+
+.detail-skeleton__filter {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.detail-skeleton__chip {
+  flex: 1;
+  min-width: 70px;
+  height: 22px;
+}
+
+.detail-skeleton__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detail-skeleton__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 6px 0;
+}
+
+.detail-skeleton__icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+}
+
+.detail-skeleton__line {
+  flex: 1;
+  height: 14px;
+}
+
+.detail-skeleton--content {
+  gap: 1rem;
+}
+
+.detail-skeleton__title {
+  width: clamp(180px, 35%, 320px);
+  height: 24px;
+}
+
+.detail-skeleton__paragraph {
+  width: 100%;
+  height: 16px;
+  border-radius: 12px;
+
+  &:nth-of-type(2n) {
+    width: 92%;
+  }
+
+  &:nth-of-type(3n) {
+    width: 68%;
+  }
+}
+
+.detail-skeleton--content .detail-skeleton__paragraph:last-child {
+  width: 40%;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -293,5 +390,15 @@
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes detailSkeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
   }
 }

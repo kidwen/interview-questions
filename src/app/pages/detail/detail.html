@@ -1,105 +1,139 @@
 <div class="detail-container">
   <!-- Left Sidebar Menu -->
   <aside class="sidebar">
-    @if (authService.isLoggedIn()) {
-    <div class="filter-bar">
-      <label class="checkbox-label">
-        <input type="checkbox" [ngModel]="showRead()" (ngModelChange)="showRead.set($event)" />
-        已读
-      </label>
-      <label class="checkbox-label">
-        <input type="checkbox" [ngModel]="showUnread()" (ngModelChange)="showUnread.set($event)" />
-        未读
-      </label>
-    </div>
-    }
-
-    <ul class="menu-list">
-      @for (item of filteredMenuItems(); track item.id) {
-      <li [class.active]="selectedMenuId() === item.id" (click)="selectMenu(item.id)">
+    @if (isMenuLoading()) {
+      <div class="detail-skeleton detail-skeleton--sidebar" role="status" aria-label="问题列表加载中">
         @if (authService.isLoggedIn()) {
-        <svg
-          class="check-icon"
-          [class.read]="item.isRead"
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
+          <div class="detail-skeleton__filter" aria-hidden="true">
+            <span class="detail-skeleton__chip detail-skeleton__block"></span>
+            <span class="detail-skeleton__chip detail-skeleton__block"></span>
+          </div>
         }
-        <span>{{ $index + 1 }}. {{ item.label }}</span>
-      </li>
+
+        <div class="detail-skeleton__menu">
+          @for (item of sidebarSkeletonItems; track item) {
+            <div class="detail-skeleton__menu-item" aria-hidden="true">
+              <span class="detail-skeleton__icon detail-skeleton__block"></span>
+              <span class="detail-skeleton__line detail-skeleton__block"></span>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      @if (authService.isLoggedIn()) {
+        <div class="filter-bar">
+          <label class="checkbox-label">
+            <input type="checkbox" [ngModel]="showRead()" (ngModelChange)="showRead.set($event)" />
+            已读
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [ngModel]="showUnread()" (ngModelChange)="showUnread.set($event)" />
+            未读
+          </label>
+        </div>
       }
-    </ul>
+
+      <ul class="menu-list">
+        @for (item of filteredMenuItems(); track item.id) {
+          <li [class.active]="selectedMenuId() === item.id" (click)="selectMenu(item.id)">
+            @if (authService.isLoggedIn()) {
+              <svg
+                class="check-icon"
+                [class.read]="item.isRead"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            }
+            <span>{{ $index + 1 }}. {{ item.label }}</span>
+          </li>
+        }
+      </ul>
+    }
   </aside>
 
   <!-- Right Content Area -->
   <section class="content-area">
-    @if (selectedMenuId()) {
-    <button class="refresh-btn" (click)="refreshAnswer()" [disabled]="isLoading()" title="刷新回答">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path
-          d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"
-        />
-      </svg>
-    </button>
+    @if (isMenuLoading() || selectedMenuId()) {
+      <button class="refresh-btn" (click)="refreshAnswer()" [disabled]="isLoading()" title="刷新回答">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"
+          />
+        </svg>
+      </button>
     }
 
-    <div class="html-renderer" [innerHTML]="selectedContent()"></div>
+    @if (shouldShowContentSkeleton()) {
+      <div
+        class="detail-skeleton detail-skeleton--content"
+        role="status"
+        aria-live="polite"
+        aria-label="答案生成中"
+      >
+        <div class="detail-skeleton__title detail-skeleton__block"></div>
+        @for (paragraph of contentSkeletonParagraphs; track paragraph) {
+          <div class="detail-skeleton__paragraph detail-skeleton__block"></div>
+        }
+      </div>
+    } @else {
+      <div class="html-renderer" [innerHTML]="selectedContent()"></div>
 
-    @if (authService.isLoggedIn() && selectedMenuId() && !isLoading() && streamedContentRaw()) {
-    <div class="read-actions">
-      <button class="btn-read" (click)="markAsRead()">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        标为已读
-      </button>
-      <button class="btn-unread" (click)="markAsUnread()">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-        取消已读
-      </button>
-    </div>
+      @if (authService.isLoggedIn() && selectedMenuId() && !isLoading() && streamedContentRaw()) {
+        <div class="read-actions">
+          <button class="btn-read" (click)="markAsRead()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            标为已读
+          </button>
+          <button class="btn-unread" (click)="markAsUnread()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            取消已读
+          </button>
+        </div>
+      }
     }
   </section>
 </div>

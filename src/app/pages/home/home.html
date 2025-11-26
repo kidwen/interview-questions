@@ -1,13 +1,31 @@
 @if (isPoliceAgreed()) {
-  @for (group of groupedCards(); track group.category) {
-    <section class="category-section">
-      <h2 class="category-title">{{ group.category }}</h2>
-      <div class="card-grid">
-        @for (item of group.items; track item.id) {
-          <app-card [data]="item"></app-card>
-        }
-      </div>
-    </section>
+  @if (isLoading()) {
+    <div class="home-skeleton" aria-label="分类内容加载中">
+      @for (section of skeletonSections; track section) {
+        <section class="skeleton-section" aria-hidden="true">
+          <div class="skeleton-title skeleton-block"></div>
+          <div class="skeleton-grid">
+            @for (card of skeletonCards; track card) {
+              <div class="skeleton-card">
+                <div class="skeleton-line skeleton-line--lg skeleton-block"></div>
+                <div class="skeleton-line skeleton-line--sm skeleton-block"></div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  } @else {
+    @for (group of groupedCards(); track group.category) {
+      <section class="category-section">
+        <h2 class="category-title">{{ group.category }}</h2>
+        <div class="card-grid">
+          @for (item of group.items; track item.id) {
+            <app-card [data]="item"></app-card>
+          }
+        </div>
+      </section>
+    }
   }
 } @else {
   <div class="login-overlay">

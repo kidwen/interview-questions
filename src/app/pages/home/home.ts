@@ -15,9 +15,12 @@ export class HomeComponent implements OnInit {
 
   // Signals for login state
   protected readonly isPoliceAgreed = signal<boolean>(false);
+  protected readonly isLoading = signal<boolean>(false);
 
   // Signal to hold our transformed card data
   protected readonly cards = signal<HomeCardData[]>([]);
+  protected readonly skeletonSections = Array.from({ length: 3 }, (_, index) => index);
+  protected readonly skeletonCards = Array.from({ length: 4 }, (_, index) => index);
 
   // Computed signal to group cards by category
   protected readonly groupedCards = computed(() => {
@@ -55,12 +58,17 @@ export class HomeComponent implements OnInit {
   }
 
   private loadData() {
+    this.isLoading.set(true);
+    this.cards.set([]);
+
     this.homeService.getHomeData().subscribe({
       next: (data) => {
         this.cards.set(data);
+        this.isLoading.set(false);
       },
       error: (err) => {
         console.error('Failed to load home data', err);
+        this.isLoading.set(false);
         // Error handling (e.g. show toast)
       }
     });
