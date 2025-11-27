@@ -136,4 +136,138 @@
       }
     }
   </section>
+
+  @if (showChatButton()) {
+    <div
+      class="chat-widget"
+      [style.right.px]="chatBtnPosition().right"
+      [style.bottom.px]="chatBtnPosition().bottom"
+    >
+      <!-- Chat Button -->
+      <button
+        class="chat-toggle-btn"
+        (mousedown)="onDragStart($event)"
+        (touchstart)="onDragStart($event)"
+        (click)="toggleChat()"
+        [class.active]="isChatOpen()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>AI 问答</span>
+      </button>
+
+      <!-- Chat Box -->
+      @if (isChatOpen()) {
+        <div class="chat-box">
+          <div class="chat-header">
+            <h3>AI 助手</h3>
+            <button class="close-btn" (click)="toggleChat()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <div class="chat-messages">
+            @if (chatMessages().length === 0) {
+              <div class="empty-state">
+                <p>有什么问题都可以问我哦~</p>
+              </div>
+            }
+            @for (msg of chatMessages(); track $index) {
+              <div class="message" [class.user]="msg.role === 'user'" [class.ai]="msg.role === 'ai'">
+                <div class="avatar">
+                  @if (msg.role === 'ai') {
+                    <span>AI</span>
+                  } @else {
+                    <span>Me</span>
+                  }
+                </div>
+
+                <div class="content-wrapper">
+                  @if (editingMessageIndex() === $index) {
+                    <div class="edit-mode">
+                      <textarea
+                        [ngModel]="editInput()"
+                        (ngModelChange)="editInput.set($event)"
+                        rows="3"
+                      ></textarea>
+                      <div class="edit-actions">
+                        <button class="btn-cancel" (click)="cancelEdit()">取消</button>
+                        <button class="btn-save" (click)="submitEdit($index)">完成</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="bubble">
+                      @if (msg.role === 'ai') {
+                        @if (!msg.content && isChatLoading() && $index === chatMessages().length - 1) {
+                           <div class="loading-dots">
+                             <span class="typing-dot"></span>
+                             <span class="typing-dot"></span>
+                             <span class="typing-dot"></span>
+                           </div>
+                        } @else {
+                           <div class="markdown-content" [innerHTML]="renderMarkdown(msg.content)"></div>
+                        }
+                      } @else {
+                        <div class="text-content">{{ msg.content }}</div>
+                      }
+                    </div>
+
+                    @if (msg.role === 'user' || (msg.role === 'ai' && !isChatLoading())) {
+                      <div class="msg-actions">
+                        @if (msg.role === 'user') {
+                          <button class="action-btn" (click)="startEdit($index, msg.content)" title="编辑">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                          </button>
+                        }
+                        <button class="action-btn" (click)="copyMessage(msg.content)" title="复制">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            }
+            <!-- Removed the separate loading block since we now have inline loading/stop -->
+          </div>
+
+          <div class="chat-input-area">
+            @if (isChatLoading()) {
+              <div class="stop-container">
+                <button class="stop-btn" (click)="stopGeneration()" title="停止生成">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect>
+                  </svg>
+                  停止生成
+                </button>
+              </div>
+            } @else {
+              <input
+                type="text"
+                [ngModel]="chatInput()"
+                (ngModelChange)="chatInput.set($event)"
+                (keyup.enter)="sendChatMessage()"
+                placeholder="请输入你的问题..."
+                [disabled]="isChatLoading()"
+              />
+              <button
+                class="send-btn"
+                (click)="sendChatMessage()"
+                [disabled]="!chatInput() || isChatLoading()"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
 </div>

@@ -13,7 +13,7 @@ export interface RegisterRequest {
   password?: string;
 }
 
-export type UserRole = 'admin' | 'editor' | 'user' | 'guest' | string;
+export type UserRole = 'admin' | 'vip' | 'user' | 'guest' | string;
 
 export interface ApiUser {
   user_id: number;

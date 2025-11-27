@@ -1,0 +1,13 @@
+<select
+  [id]="id"
+  [ngModel]="value"
+  (ngModelChange)="onModelChange($event)"
+  [disabled]="disabled"
+>
+  @if (placeholder) {
+    <option value="" disabled selected hidden>{{ placeholder }}</option>
+  }
+  @for (option of options; track option.value) {
+    <option [value]="option.value">{{ option.label }}</option>
+  }
+</select>

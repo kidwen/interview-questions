@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -76,6 +76,26 @@ export class DetailComponent implements OnInit, OnDestroy {
     const items = this.menuItems();
     return items.find(item => item.id === selectedId)?.label || '';
   });
+
+  // Chat signals
+  protected isChatOpen = signal(false);
+  protected chatInput = signal('');
+  protected chatMessages = signal<{ role: 'user' | 'ai'; content: string }[]>([]);
+  protected isChatLoading = signal(false);
+  protected editingMessageIndex = signal<number | null>(null);
+  protected editInput = signal('');
+  protected activeStreamIndex = signal<number | null>(null);
+
+  private chatSubscription: Subscription | null = null;
+
+  protected showChatButton = computed(() => {
+    return !this.isLoading() && !!this.streamedContentRaw() && !!this.selectedMenuId();
+  });
+
+  // Dragging signals
+  protected isDragging = false;
+  protected dragOffset = { x: 0, y: 0 };
+  protected chatBtnPosition = signal<{ right: number, bottom: number }>({ right: 30, bottom: 10 }); // Use right/bottom to match initial CSS
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -175,9 +195,271 @@ export class DetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  toggleChat() {
+    // Simple check: if we moved significantly, it's a drag, not a click.
+    // But `toggleChat` is bound to `(click)`.
+    // If we handle dragging via mousedown/move/up on the button, the click event might still fire.
+    // We can suppress the click logic if we detected a drag.
+    if (this.hasDragged) {
+      this.hasDragged = false; // Reset for next time
+      return;
+    }
+    this.isChatOpen.update(v => !v);
+  }
+
+  private hasDragged = false;
+
+  onDragStart(event: MouseEvent | TouchEvent) {
+    this.isDragging = true;
+    this.hasDragged = false; // Reset
+    const clientX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+    const clientY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+
+    this.dragOffset = { x: clientX, y: clientY };
+
+    // Prevent default to stop text selection, but we need to be careful not to block click if it's just a click.
+    // Only prevent default if we are sure we are dragging? No, standard way is preventDefault on mousedown for drag items.
+    // But for a button we want to click...
+    // Let's NOT prevent default on start, only on move if needed.
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  @HostListener('document:touchmove', ['$event'])
+  onDragMove(event: MouseEvent | TouchEvent) {
+    if (!this.isDragging) return;
+
+    const clientX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+    const clientY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+
+    const deltaX = this.dragOffset.x - clientX;
+    const deltaY = this.dragOffset.y - clientY;
+
+    // Threshold to consider it a drag
+    if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+      this.hasDragged = true;
+    }
+
+    if (this.hasDragged) {
+      if (event.cancelable) event.preventDefault();
+
+      this.chatBtnPosition.update(pos => {
+        const newRight = pos.right + deltaX;
+        const newBottom = pos.bottom + deltaY;
+
+        // Boundary checks
+        // Right/Bottom restricted to bottom-right quadrant
+        // Max right: window width (or reasonable margin)
+        // Min right: 0
+        // Max bottom: window height
+        // Min bottom: 0
+
+        // Let's say quadrant implies right < windowWidth/2 and bottom < windowHeight/2
+        // But we are using right/bottom CSS properties.
+        // right=0 means right edge. right=windowWidth means left edge.
+        // We want it in bottom-right quadrant.
+        // So newRight should be between 0 and window.innerWidth / 2
+        // newBottom should be between 0 and window.innerHeight / 2
+
+        const maxRight = window.innerWidth / 2;
+        const maxBottom = window.innerHeight / 2;
+        const minRight = 10; // Margin
+        const minBottom = 10; // Margin
+
+        const clampedRight = Math.max(minRight, Math.min(newRight, maxRight));
+        const clampedBottom = Math.max(minBottom, Math.min(newBottom, maxBottom));
+
+        return {
+          right: clampedRight,
+          bottom: clampedBottom
+        };
+      });
+
+      this.dragOffset = { x: clientX, y: clientY };
+    }
+  }
+
+  @HostListener('document:mouseup')
+  @HostListener('document:touchend')
+  onDragEnd() {
+    this.isDragging = false;
+  }
+
+  startEdit(index: number, content: string) {
+    this.editingMessageIndex.set(index);
+    this.editInput.set(content);
+  }
+
+  cancelEdit() {
+    this.editingMessageIndex.set(null);
+    this.editInput.set('');
+  }
+
+  submitEdit(index: number) {
+    const newContent = this.editInput().trim();
+    if (!newContent) return;
+
+    const currentId = this.selectedMenuId();
+    if (!currentId) return;
+
+    // Update the user message
+    this.chatMessages.update(msgs =>
+      msgs.map((msg, i) => i === index ? { ...msg, content: newContent } : msg)
+    );
+    this.editingMessageIndex.set(null);
+    this.activeStreamIndex.set(index); // Set active stream index for stop handling
+
+    // Find the corresponding AI response (should be index + 1)
+    this.chatMessages.update(msgs => {
+      const newMsgs = [...msgs];
+      if (index + 1 < newMsgs.length && newMsgs[index + 1].role === 'ai') {
+        // Reset existing AI message content to empty string to start fresh stream
+        newMsgs[index + 1] = { ...newMsgs[index + 1], content: '' };
+      } else {
+        // Insert new placeholder
+        newMsgs.splice(index + 1, 0, { role: 'ai', content: '' });
+      }
+      return newMsgs;
+    });
+
+    this.isChatLoading.set(true);
+
+    if (this.chatSubscription) {
+      this.chatSubscription.unsubscribe();
+    }
+
+    this.chatSubscription = this.detailService.chatWithAI(currentId, newContent).subscribe({
+      next: (chunk) => {
+        this.chatMessages.update(msgs => {
+          const newMsgs = [...msgs];
+          const aiIndex = index + 1;
+          if (newMsgs[aiIndex]) {
+            newMsgs[aiIndex] = {
+              ...newMsgs[aiIndex],
+              content: newMsgs[aiIndex].content + chunk
+            };
+          }
+          return newMsgs;
+        });
+      },
+      complete: () => {
+        this.isChatLoading.set(false);
+        this.chatSubscription = null;
+        this.activeStreamIndex.set(null);
+      },
+      error: (err) => {
+        console.error('Chat error', err);
+        this.toastService.show('Chat error', 'error');
+        this.isChatLoading.set(false);
+        this.chatSubscription = null;
+        this.activeStreamIndex.set(null);
+      }
+    });
+  }
+
+  copyMessage(content: string) {
+    navigator.clipboard.writeText(content).then(() => {
+      this.toastService.show('复制成功', 'success');
+    }).catch(() => {
+      this.toastService.show('复制失败', 'error');
+    });
+  }
+
+  stopGeneration() {
+    if (this.chatSubscription) {
+      this.chatSubscription.unsubscribe();
+      this.chatSubscription = null;
+    }
+    this.isChatLoading.set(false);
+
+    const activeIdx = this.activeStreamIndex();
+    if (activeIdx !== null) {
+      // Restore user input from the active user message
+      const messages = this.chatMessages();
+      const activeUserMsg = messages[activeIdx];
+      if (activeUserMsg && activeUserMsg.role === 'user') {
+        this.chatInput.set(activeUserMsg.content);
+      }
+
+      // Remove user message and AI message (index and index+1)
+      // We use slice to remove items.
+      // Check if activeIdx + 1 exists (it should).
+      // If we are removing, we should probably remove both.
+
+      this.chatMessages.update(msgs => {
+        const newMsgs = [...msgs];
+        // Remove 2 items starting from activeIdx
+        newMsgs.splice(activeIdx, 2);
+        return newMsgs;
+      });
+
+      this.activeStreamIndex.set(null);
+    }
+  }
+
+  sendChatMessage() {
+    const input = this.chatInput().trim();
+    const currentId = this.selectedMenuId();
+    if (!input || !currentId || this.isChatLoading()) return;
+
+    // Add user message
+    this.chatMessages.update(msgs => [...msgs, { role: 'user', content: input }]);
+
+    const userInput = input; // Keep a copy
+    this.chatInput.set('');
+    this.isChatLoading.set(true);
+
+    // Add empty AI message placeholder immediately
+    // We need to know the index of the user message to set activeStreamIndex
+    this.chatMessages.update((msgs: any) => {
+      const newMsgs = [...msgs, { role: 'ai', content: '' }];
+      return newMsgs;
+    });
+
+    // User message is at length - 2, AI is at length - 1.
+    // Set active stream index to the user message index (Question)
+    this.activeStreamIndex.set(this.chatMessages().length - 2);
+
+    this.chatSubscription = this.detailService.chatWithAI(currentId, userInput).subscribe({
+      next: (chunk) => {
+        this.chatMessages.update(msgs => {
+          const newMsgs = [...msgs];
+          const lastIdx = newMsgs.length - 1;
+          if (newMsgs[lastIdx]) {
+            newMsgs[lastIdx] = {
+              ...newMsgs[lastIdx],
+              content: newMsgs[lastIdx].content + chunk
+            };
+          }
+          return newMsgs;
+        });
+      },
+      complete: () => {
+        this.isChatLoading.set(false);
+        this.chatSubscription = null;
+        this.activeStreamIndex.set(null);
+      },
+      error: (err) => {
+        console.error('Chat error', err);
+        this.toastService.show('Chat error', 'error');
+        this.isChatLoading.set(false);
+        this.chatInput.set(userInput);
+        // Remove the failed user message and the empty AI placeholder
+        this.chatMessages.update(msgs => msgs.slice(0, -2));
+        this.chatSubscription = null;
+        this.activeStreamIndex.set(null);
+      }
+    });
+  }
+
+  renderMarkdown(content: string): SafeHtml {
+    const html = marked.parse(content) as string;
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
   private loadAnswer(id: number, isRefresh = false) {
     this.streamedContentRaw.set('');
     this.isLoading.set(true);
+    this.chatMessages.set([]); // Reset chat history for new question
     this.stopStream();
 
     const stream$ = isRefresh
@@ -230,4 +512,10 @@ export class DetailComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  // Clear chat when selecting a new menu? Maybe good idea.
+  // But let's stick to minimal changes. The requirement implies chat is context sensitive.
+  // "question_id" is passed. So if I change question, the chat should probably reset?
+  // The prompt doesn't say, but it makes sense.
+
 }

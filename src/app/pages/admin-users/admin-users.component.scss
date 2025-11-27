@@ -119,6 +119,17 @@
       }
     }
 
+    .secondary {
+      background: var(--header-bg);
+      color: var(--text-color);
+
+      &:hover:not(:disabled) {
+        background: var(--shadow-color);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+    }
+
     .primary {
       background: var(--primary-color);
       color: white;
@@ -301,6 +312,204 @@ small {
   &.status-chip--locked {
     background: rgba(248, 113, 113, 0.18);
     color: #dc2626;
+  }
+}
+
+// Modal Styles
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: var(--card-bg-1);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--shadow-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: var(--text-color);
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      line-height: 1;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.25rem;
+
+      &:hover {
+        color: var(--text-color);
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .static-value {
+        padding: 0.75rem;
+        background: var(--header-bg);
+        border-radius: 8px;
+        color: var(--text-color);
+        border: 1px solid var(--shadow-color);
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: -0.25rem;
+      }
+
+      select, input {
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--shadow-color);
+        background: var(--card-bg-1);
+        color: var(--text-color);
+        font-size: 1rem;
+
+        &:focus {
+          outline: none;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        // Match the appearance of filter selects
+        &[type="text"], &[type="email"] {
+           // keep default input appearance or specific input overrides if needed
+        }
+
+        // Specifically for select elements
+        &:not(input) {
+          appearance: none;
+          padding-right: 2.5rem;
+          // Background gradient for the arrow needs to adapt to theme colors
+          // Since we don't have easy access to theme mixins here, we use variables
+          // But we need to ensure the arrow color is visible in both themes.
+          // text-secondary usually works for both.
+          // The issue is if "background-color" defaults to white/black correctly.
+          // The linear-gradient is just for the arrow icon.
+          background-image: linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+            linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+          background-position:
+            calc(100% - 18px) calc(50% - 3px),
+            calc(100% - 10px) calc(50% - 3px);
+          background-size: 8px 8px, 8px 8px;
+          background-repeat: no-repeat;
+
+          // Ensure background color is correct
+          background-color: var(--card-bg-1); // or header-bg depending on desired look
+        }
+
+        // Improve dark mode visibility for options
+        option {
+          background-color: var(--card-bg-1);
+          color: var(--text-color);
+        }
+
+        :host-context(.dark-theme) & {
+           option {
+             background-color: #1f2937;
+             color: #f3f4f6;
+           }
+        }
+      }
+    }
+  }
+
+  footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid var(--shadow-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.02);
+
+    button {
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+
+      &.ghost {
+        background: transparent;
+        border-color: var(--shadow-color);
+        color: var(--text-secondary);
+
+        &:hover {
+          background: var(--header-bg);
+          color: var(--text-color);
+        }
+      }
+
+      &.primary {
+        background: var(--primary-color);
+        color: white;
+
+        &:hover:not(:disabled) {
+          opacity: 0.9;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

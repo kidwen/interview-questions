@@ -34,19 +34,19 @@
     </div>
     <div class="field">
       <label for="lockFilter">状态</label>
-      <select
+      <app-select
         id="lockFilter"
+        [options]="lockFilterOptions"
         [ngModel]="lockedFilter()"
         (ngModelChange)="lockedFilter.set($event)"
-      >
-        @for (option of lockFilterOptions; track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
-        }
-      </select>
+      ></app-select>
     </div>
     <div class="actions">
       <button class="primary" (click)="searchUsers()" [disabled]="isLoading()">查询</button>
       <button class="ghost" (click)="resetFilters()" [disabled]="isLoading()">重置</button>
+      @if (selectedIds().length === 1) {
+        <button class="secondary" (click)="openEditUserModal()">编辑</button>
+      }
     </div>
   </section>
 
@@ -129,4 +129,58 @@
       </div>
     }
   </section>
+
+  <!-- Edit User Modal -->
+  @if (isEditUserModalOpen()) {
+    <div class="modal-backdrop" (click)="closeEditUserModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <header>
+          <h3>编辑用户 - {{ editingUser()?.username }}</h3>
+          <button class="close-btn" (click)="closeEditUserModal()">×</button>
+        </header>
+        <div class="modal-body">
+          <div class="field">
+            <label for="editEmail">邮箱</label>
+            <input
+              id="editEmail"
+              type="email"
+              [ngModel]="editFormEmail()"
+              (ngModelChange)="editFormEmail.set($event)"
+              placeholder="用户邮箱"
+            />
+          </div>
+          <div class="field">
+            <label for="editUsername">用户名</label>
+            <input
+              id="editUsername"
+              type="text"
+              [ngModel]="editFormUsername()"
+              (ngModelChange)="editFormUsername.set($event)"
+              placeholder="用户名"
+            />
+          </div>
+          <div class="field">
+            <label for="editRole">角色</label>
+            @if (authService.currentUser()?.role === 'admin') {
+              <app-select
+                id="editRole"
+                [options]="roleOptions"
+                [ngModel]="editFormRole()"
+                (ngModelChange)="editFormRole.set($event)"
+              ></app-select>
+            } @else {
+               <div class="static-value">{{ formatRole(editingUser()?.role) }}</div>
+               <small class="hint">非管理员无法修改角色</small>
+            }
+          </div>
+        </div>
+        <footer>
+          <button class="ghost" (click)="closeEditUserModal()">取消</button>
+          <button class="primary" (click)="confirmEditUser()" [disabled]="isMutating()">
+            {{ isMutating() ? '保存中...' : '保存' }}
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
 </div>

@@ -37,6 +37,7 @@ export class DetailService {
   private readonly streamApiUrl = 'https://bagu.kidwen.top/api/answer';
   private readonly refreshApiUrl = 'https://bagu.kidwen.top/api/answer/refresh';
   private readonly readStatusApiUrl = 'https://bagu.kidwen.top/api/read';
+  private readonly chatApiUrl = 'https://bagu.kidwen.top/api/question/chat';
 
   getQuestions(cardId: string): Observable<DetailMenuItem[]> {
     const params = new HttpParams().set('cate_id', cardId);
@@ -131,6 +132,77 @@ export class DetailService {
       { question_id: questionId, is_read: isRead },
       { withCredentials: true }
     );
+  }
+
+  chatWithAI(questionId: number, userInput: string): Observable<string> {
+    return this.fetchStreamPost(this.chatApiUrl, { question_id: questionId, user_input: userInput });
+  }
+
+  private fetchStreamPost(urlStr: string, body: any): Observable<string> {
+    return new Observable<string>(observer => {
+      const abortController = new AbortController();
+      const { signal } = abortController;
+
+      fetch(urlStr, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body),
+        signal,
+        credentials: 'include'
+      })
+        .then(async response => {
+          const contentType = response.headers.get('content-type');
+
+          if (contentType && contentType.includes('application/json')) {
+            const json = await response.json();
+            if (json.code === 0 && json.data) {
+              this.zone.run(() => {
+                observer.next(json.data);
+                observer.complete();
+              });
+            } else {
+              this.zone.run(() =>
+                observer.error(new Error(json.msg || 'Unknown error'))
+              );
+            }
+            return;
+          }
+
+          if (!response.body) {
+            throw new Error('No response body');
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) {
+                this.zone.run(() => observer.complete());
+                break;
+              }
+              const chunk = decoder.decode(value, { stream: true });
+              this.zone.run(() => observer.next(chunk));
+            }
+          } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+              // Aborted, ignore
+            } else {
+              this.zone.run(() => observer.error(err));
+            }
+          }
+        })
+        .catch(err => {
+          this.zone.run(() => observer.error(err));
+        });
+
+      return () => {
+        abortController.abort();
+      };
+    });
   }
 
   private transformData(data: QuestionApiResponse[]): DetailMenuItem[] {

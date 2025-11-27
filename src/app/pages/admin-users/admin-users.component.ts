@@ -1,20 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ApiUser } from '../../services/auth.service';
+import { ApiUser, AuthService } from '../../services/auth.service';
 import { UserListQuery, UserService } from '../../services/user.service';
+import { SelectComponent } from '../../components/select/select.component';
 
 type LockFilter = 'all' | 'locked' | 'unlocked';
 
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SelectComponent],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.scss'
 })
 export class AdminUsersComponent implements OnInit {
   private userService = inject(UserService);
+  protected authService = inject(AuthService); // Inject AuthService to check current user role
 
   protected readonly users = signal<ApiUser[]>([]);
   protected readonly isLoading = signal<boolean>(false);
@@ -25,6 +27,21 @@ export class AdminUsersComponent implements OnInit {
   protected readonly lockedFilter = signal<LockFilter>('all');
   protected readonly totalUsers = computed(() => this.users().length);
   protected readonly selectedIds = signal<number[]>([]);
+
+  // Edit User Modal (was Edit Role)
+  protected readonly isEditUserModalOpen = signal<boolean>(false);
+  protected readonly editingUser = signal<ApiUser | null>(null);
+
+  // Form signals
+  protected readonly editFormEmail = signal<string>('');
+  protected readonly editFormUsername = signal<string>('');
+  protected readonly editFormRole = signal<string>('user');
+
+  protected readonly roleOptions = [
+    { label: '普通用户', value: 'user' },
+    { label: '管理员', value: 'admin' },
+    { label: 'VIP用户', value: 'vip' }
+  ];
 
   protected readonly lockFilterOptions: { label: string; value: LockFilter }[] = [
     { label: '全部', value: 'all' },
@@ -63,10 +80,70 @@ export class AdminUsersComponent implements OnInit {
   protected toggleSelection(userId: number, checked: boolean) {
     this.selectedIds.update(current => {
       if (checked) {
-        if (current.includes(userId)) return current;
-        return [userId];
+        return [userId]; // Single selection
       }
-      return current.filter(id => id !== userId);
+      return []; // Deselect
+    });
+  }
+
+  protected openEditUserModal() {
+    const selectedId = this.selectedIds()[0];
+    if (!selectedId) return;
+
+    const user = this.users().find(u => u.user_id === selectedId);
+    if (user) {
+      this.editingUser.set(user);
+      this.editFormEmail.set(user.email || '');
+      this.editFormUsername.set(user.username || '');
+      this.editFormRole.set(user.role || 'user');
+      this.isEditUserModalOpen.set(true);
+    }
+  }
+
+  protected closeEditUserModal() {
+    this.isEditUserModalOpen.set(false);
+    this.editingUser.set(null);
+  }
+
+  protected confirmEditUser() {
+    const user = this.editingUser();
+    const newEmail = this.editFormEmail().trim();
+    const newUsername = this.editFormUsername().trim();
+    const newRole = this.editFormRole();
+
+    if (!user) return;
+
+    const currentUser = this.authService.currentUser();
+    const isAdmin = currentUser?.role === 'admin';
+
+    const updateData: any = {};
+    if (newEmail !== user.email) updateData.email = newEmail;
+    if (newUsername !== user.username) updateData.username = newUsername;
+
+    // Only include role if changed AND current user is admin
+    if (isAdmin && newRole !== user.role) {
+      updateData.role = newRole;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      this.closeEditUserModal();
+      return;
+    }
+
+    this.isMutating.set(true);
+    this.userService.updateUser(user.user_id, updateData).subscribe({
+      next: (updatedUser) => {
+        this.users.update(current =>
+          current.map(u => u.user_id === user.user_id ? (updatedUser || { ...u, ...updateData }) : u)
+        );
+        this.closeEditUserModal();
+        this.isMutating.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.message);
+        this.isMutating.set(false);
+        setTimeout(() => this.errorMessage.set(''), 3000);
+      }
     });
   }
 

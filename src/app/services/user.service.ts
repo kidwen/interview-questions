@@ -64,4 +64,38 @@ export class UserService {
         })
       );
   }
+
+  updateUserRole(userId: number, role: string): Observable<ApiUser | null> {
+    return this.http
+      .post<LockResponse>(
+        `${this.apiUrl}/${userId}/role`,
+        { role },
+        { withCredentials: true }
+      )
+      .pipe(
+        map(res => {
+          if (res.code === 0) {
+            return res.data ?? null;
+          }
+          throw new Error(res.msg || '更新角色失败');
+        })
+      );
+  }
+
+  updateUser(userId: number, data: { email?: string; username?: string; role?: string }): Observable<ApiUser | null> {
+    return this.http
+      .post<LockResponse>(
+        `${this.apiUrl}/${userId}`,
+        data,
+        { withCredentials: true }
+      )
+      .pipe(
+        map(res => {
+          if (res.code === 0) {
+            return res.data ?? null;
+          }
+          throw new Error(res.msg || '更新用户信息失败');
+        })
+      );
+  }
 }
