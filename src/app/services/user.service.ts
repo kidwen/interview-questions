@@ -67,8 +67,8 @@ export class UserService {
 
   updateUserRole(userId: number, role: string): Observable<ApiUser | null> {
     return this.http
-      .post<LockResponse>(
-        `${this.apiUrl}/${userId}/role`,
+      .put<LockResponse>(
+        `${this.apiUrl}/${userId}`,
         { role },
         { withCredentials: true }
       )
@@ -84,7 +84,7 @@ export class UserService {
 
   updateUser(userId: number, data: { email?: string; username?: string; role?: string }): Observable<ApiUser | null> {
     return this.http
-      .post<LockResponse>(
+      .put<LockResponse>(
         `${this.apiUrl}/${userId}`,
         data,
         { withCredentials: true }
@@ -99,3 +99,4 @@ export class UserService {
       );
   }
 }
+
