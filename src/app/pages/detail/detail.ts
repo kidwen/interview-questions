@@ -8,11 +8,12 @@ import { ToastService } from '../../services/toast.service';
 import { Subscription } from 'rxjs';
 import { marked } from 'marked';
 import { FormsModule } from '@angular/forms';
+import { MarkdownPipe } from '../../pipes/markdown-pipe';
 
 @Component({
   selector: 'app-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MarkdownPipe],
   templateUrl: './detail.html',
   styleUrl: './detail.scss'
 })
@@ -451,10 +452,6 @@ export class DetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  renderMarkdown(content: string): SafeHtml {
-    const html = marked.parse(content) as string;
-    return this.sanitizer.bypassSecurityTrustHtml(html);
-  }
 
   private loadAnswer(id: number, isRefresh = false) {
     this.streamedContentRaw.set('');

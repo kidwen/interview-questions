@@ -144,10 +144,11 @@
       [style.bottom.px]="chatBtnPosition().bottom"
     >
       <!-- Chat Button -->
+      <!-- (mousedown)="onDragStart($event)"
+      (touchstart)="onDragStart($event)" -->
       <button
         class="chat-toggle-btn"
-        (mousedown)="onDragStart($event)"
-        (touchstart)="onDragStart($event)"
+
         (click)="toggleChat()"
         [class.active]="isChatOpen()"
       >
@@ -209,7 +210,7 @@
                              <span class="typing-dot"></span>
                            </div>
                         } @else {
-                           <div class="markdown-content" [innerHTML]="renderMarkdown(msg.content)"></div>
+                           <div class="markdown-content" [innerHTML]="msg.content | markdown"></div>
                         }
                       } @else {
                         <div class="text-content">{{ msg.content }}</div>
