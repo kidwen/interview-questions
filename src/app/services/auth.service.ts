@@ -126,7 +126,7 @@ export class AuthService {
     return null;
   }
 
-  private clearSession() {
+  public clearSession() {
     this.currentUser.set(null);
     this.isLoggedIn.set(false);
     localStorage.removeItem('currentUser');

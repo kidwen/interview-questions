@@ -90,7 +90,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   private chatSubscription: Subscription | null = null;
 
   protected showChatButton = computed(() => {
-    return !this.isLoading() && !!this.streamedContentRaw() && !!this.selectedMenuId() && this.authService.isLoggedIn();
+    return !this.isLoading() && !!this.streamedContentRaw() && !!this.selectedMenuId() && this.authService.isLoggedIn() && this.authService.userRole() !== 'user';
   });
 
   // Dragging signals
