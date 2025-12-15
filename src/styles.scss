@@ -1,8 +1,10 @@
 /* You can add global styles to this file, and also import other style files */
 :root {
-  --bg-color: #eef2f6; /* Slightly darker/cooler grey for better contrast */
+  --bg-color: #eef2f6;
+  /* Slightly darker/cooler grey for better contrast */
   --header-bg: #ffffff;
-  --text-color: #1e293b; /* Darker slate for better readability */
+  --text-color: #1e293b;
+  /* Darker slate for better readability */
   --text-secondary: #64748b;
 
   /* Gradient Card Backgrounds - Light Theme */
@@ -17,7 +19,8 @@
 }
 
 body.dark-theme {
-  --bg-color: #0f172a; /* Deep slate/navy background */
+  --bg-color: #0f172a;
+  /* Deep slate/navy background */
   --header-bg: #1e293b;
   --text-color: #f1f5f9;
   --text-secondary: #94a3b8;
@@ -41,4 +44,34 @@ body {
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
   min-height: 100vh;
+
+  .pulse {
+    position: absolute;
+    border: #03a9f4 1px solid;
+    z-index: 2000;
+    border-radius: 100%;
+    transform: translate(-50%, -50%);
+    animation: pulse 1s ease-in infinite;
+    pointer-events: none;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+      width: 0;
+      height: 0;
+    }
+
+    50% {
+      opacity: 1;
+      // width: 20px;
+      // height: 20px;
+    }
+
+    100% {
+      opacity: 0;
+      width: 100px;
+      height: 100px;
+    }
+  }
 }

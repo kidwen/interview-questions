@@ -121,7 +121,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.stopStream();
   }
 
-  selectMenu(id: number, navigate = true) {
+  selectMenu(id: number, navigate = true, replaceUrl = false) {
     this.selectedMenuId.set(id);
     this.loadAnswer(id);
 
@@ -129,7 +129,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     if (navigate) {
-      this.router.navigate(['/detail', this.cardId(), id]);
+      this.router.navigate(['/detail', this.cardId(), id], { replaceUrl });
     }
   }
 
@@ -500,7 +500,8 @@ export class DetailComponent implements OnInit, OnDestroy {
         const hasRouteParam = this.route.snapshot.paramMap.has('menuId');
         if (!hasRouteParam && data.length > 0) {
           const defaultId = data[0].id;
-          this.selectMenu(defaultId, true);
+          // Initial load redirection should replace URL to avoid history loops when going back
+          this.selectMenu(defaultId, true, true);
         }
       },
       error: (err) => {

@@ -52,10 +52,9 @@
               <span class="role-badge">角色：{{ authService.currentUser()?.role ?? 'user' }}</span>
             </div>
             @if (authService.currentUser()?.is_locked) {
-              <div class="locked-hint">账号已锁定，仅可浏览</div>
-            }
-            @if (authService.userRole() === 'admin') {
-              <button class="logout-btn admin-link" routerLink="/admin/users">用户列表</button>
+            <div class="locked-hint">账号已锁定，仅可浏览</div>
+            } @if (authService.userRole() === 'admin') {
+            <button class="logout-btn admin-link" routerLink="/admin/users">用户列表</button>
             }
             <button class="logout-btn admin-link" routerLink="/prompts">我的提示词</button>
             <button class="logout-btn" (click)="authService.logout()">退出登录</button>

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, HostListener, DOCUMENT } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../components/card/card.component';
 import { HomeService, HomeCardData } from '../../services/home.service';
@@ -12,6 +12,7 @@ import { HomeService, HomeCardData } from '../../services/home.service';
 })
 export class HomeComponent implements OnInit {
   private homeService = inject(HomeService);
+  private document = inject(DOCUMENT);
 
   // Signals for login state
   protected readonly isPoliceAgreed = signal<boolean>(false);
@@ -21,6 +22,19 @@ export class HomeComponent implements OnInit {
   protected readonly cards = signal<HomeCardData[]>([]);
   protected readonly skeletonSections = Array.from({ length: 3 }, (_, index) => index);
   protected readonly skeletonCards = Array.from({ length: 4 }, (_, index) => index);
+
+  @HostListener('click', ['$event'])
+  onClick(event: MouseEvent) {
+    const i = this.document.createElement('i');
+    i.classList.add('pulse');
+    i.style.left = `${event.x}px`;
+    i.style.top = `${event.y}px`;
+    this.document.body.appendChild(i);
+    setTimeout(() => {
+      i.remove();
+    }, 1000);
+  }
+
 
   // Computed signal to group cards by category
   protected readonly groupedCards = computed(() => {
