@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, OnDestroy, HostListener, afterNextRender, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -24,6 +24,7 @@ export class DetailComponent implements OnInit, OnDestroy {
   private detailService = inject(DetailService);
   protected authService = inject(AuthService);
   private toastService = inject(ToastService);
+  private injector = inject(Injector);
 
   protected cardId = signal<string | null>(null);
   protected menuItems = signal<DetailMenuItem[]>([]);
@@ -433,6 +434,9 @@ export class DetailComponent implements OnInit, OnDestroy {
           }
           return newMsgs;
         });
+        afterNextRender(() => {
+          window.hljs?.highlightAll();
+        }, { injector: this.injector });
       },
       complete: () => {
         this.isChatLoading.set(false);
@@ -466,6 +470,9 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.streamSubscription = stream$.subscribe({
       next: (chunk) => {
         this.streamedContentRaw.update(current => current + chunk);
+        afterNextRender(() => {
+          window.hljs?.highlightAll();
+        }, { injector: this.injector });
       },
       complete: () => {
         this.isLoading.set(false);
